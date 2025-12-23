@@ -4,6 +4,8 @@
 Stribe er en habit tracker app bygget med .NET MAUI til iOS og Android (og Windows til test).
 Målgruppe: Dansktalende brugere der vil tracke daglige vaner med fokus på streaks.
 
+**Version**: 1.1 - Med fleksibel frekvens og ugedage
+
 ## Tech Stack
 - .NET 10 MAUI
 - SQLite (sqlite-net-pcl) for lokal data
@@ -73,6 +75,52 @@ Se komplet liste og dependency graph i `/.commands/README.md`
 5. Test på Windows først, derefter Android emulator
 6. Build efter hver command for at verificere
 
+## Kode Kvalitetsstandarder
+
+Al kode i dette projekt SKAL overholde følgende principper:
+
+### 1. KISS Princippet (Keep It Simple, Stupid)
+- **Vælg altid den simpleste løsning der virker**
+- Undgå over-engineering og unødvendig kompleksitet
+- Én funktion = én opgave
+- Hvis en løsning kræver lang forklaring, er den for kompleks
+- Spørg: "Kan dette gøres enklere?"
+
+### 2. Clean Code Principper
+**Navngivning:**
+- Beskrivende, selvforklarende navne
+- Dårligt: `var d; // days`
+- Godt: `var daysSinceLastCompletion;`
+
+**Funktioner:**
+- Korte (max 20-30 linjer)
+- Gør én ting
+- Ét abstraktionsniveau
+
+**Kommentarer:**
+- Koden skal være selvdokumenterende
+- Undgå kommentarer der forklarer HVAD
+- Brug kun kommentarer til HVORFOR (når nødvendigt)
+
+### 3. Best Practices
+- **DRY (Don't Repeat Yourself)**: Ingen duplikeret kode
+- **SOLID principper** hvor relevant
+- **Defensive programming**: Valider input, håndter edge cases
+- **Error handling**: Meningsfulde fejlbeskeder
+- **Testbarhed**: Kode skal være let at teste
+
+### 4. Kode Evaluerings-checklist
+Før en command markeres færdig:
+- [ ] **KISS**: Er dette den simpleste løsning?
+- [ ] **Læsbarhed**: Kan en anden udvikler forstå koden uden forklaring?
+- [ ] **Navngivning**: Er alle navne beskrivende og konsistente?
+- [ ] **Funktioner**: Er alle funktioner korte og fokuserede?
+- [ ] **DRY**: Er der nogen duplikeret kode?
+- [ ] **Error handling**: Er fejl håndteret korrekt?
+- [ ] **Edge cases**: Er edge cases identificeret og håndteret?
+- [ ] **Performance**: Er der åbenlyse performance problemer?
+- [ ] **Testbarhed**: Kan koden nemt testes?
+
 ## Build Kommandoer
 ```bash
 # Byg projekt
@@ -93,9 +141,14 @@ dotnet clean src/Stribe/Stribe.csproj && dotnet build src/Stribe/Stribe.csproj
 ✅ Colors.xaml (Scandinavian design tokens)
 ✅ Styles.xaml (Typography, buttons, cards, inputs)
 ✅ BaseViewModel
-✅ Models (Habit, Completion, AppSettings)
+✅ Models (Habit, Completion, AppSettings) - **Med frekvens felter (v1.1)**
 ✅ DatabaseService + IDatabaseService
 ✅ MauiProgram.cs DI setup
+
+## Nye Funktioner (v1.1)
+✅ **Daglige gentagelser**: Vaner kan sættes til 1-99 gange per dag
+✅ **Ugedag-planlægning**: Vaner kan konfigureres til specifikke ugedage
+✅ **Progress tracking**: Multi-completion tracking i Completion model
 
 ## Nuværende Status
 - **Phase**: 1 - Foundation
@@ -222,9 +275,9 @@ Shows: Sidste 7 dage (Mon-Sun af nuværende uge)
 
 ```
 src/Stribe/
-├── Models/                    ✅ Færdig
-│   ├── Habit.cs              (Id, Name, Emoji, Color, ReminderTime, etc.)
-│   ├── Completion.cs         (Id, HabitId, Date, CompletedAt)
+├── Models/                    ✅ Færdig (v1.1 med frekvens)
+│   ├── Habit.cs              (Id, Name, Emoji, Color, ReminderTime, DailyTargetCount, ActiveDays)
+│   ├── Completion.cs         (Id, HabitId, Date, Count, CompletedAt)
 │   └── AppSettings.cs        (Key-Value settings)
 │
 ├── Services/                  ✅ DatabaseService færdig
@@ -394,6 +447,34 @@ habit.Color = "HabitGreen";  // NOT "#7CB97B"
 
 // Converter til Color:
 Color.FromArgb(Application.Current.Resources["HabitGreen"].ToString());
+```
+
+### Habit Frequency (v1.1)
+```csharp
+// Daglige gentagelser (1-99)
+habit.DailyTargetCount = 8;  // fx "Drik vand 8x dagligt"
+
+// Ugedage bitmask (Mon-Sun: "1111111")
+habit.ActiveDays = "1111111";  // Hver dag
+habit.ActiveDays = "1111100";  // Kun hverdage (Man-Fre)
+habit.ActiveDays = "0000011";  // Kun weekend (Lør-Søn)
+habit.ActiveDays = "1010100";  // Man, Ons, Fre
+
+// Tjek om habit er aktiv for en bestemt dag
+public bool IsActiveOnDay(DateTime date)
+{
+    int dayIndex = (int)date.DayOfWeek;
+    dayIndex = dayIndex == 0 ? 6 : dayIndex - 1; // Convert Sunday=0 to Monday=0
+    return ActiveDays[dayIndex] == '1';
+}
+
+// Completion med count
+var completion = new Completion
+{
+    HabitId = habitId,
+    Date = DateTime.Today.ToString("yyyy-MM-dd"),
+    Count = 3  // 3 ud af 8 completions
+};
 ```
 
 ### Dependency Injection Registration

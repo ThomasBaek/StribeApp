@@ -13,5 +13,7 @@ public class Completion
     [Indexed]
     public string Date { get; set; } = string.Empty; // Format: "yyyy-MM-dd"
 
+    public int Count { get; set; } = 1; // Number of completions for this date
+
     public DateTime CompletedAt { get; set; } = DateTime.UtcNow;
 }
