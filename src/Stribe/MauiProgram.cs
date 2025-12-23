@@ -23,6 +23,7 @@ public static class MauiProgram
 
 		// Services
 		builder.Services.AddSingleton<IDatabaseService, DatabaseService>();
+		builder.Services.AddSingleton<IHabitService, HabitService>();
 
 		// Pages (Transient - new instance each navigation)
 		builder.Services.AddTransient<SplashPage>();
