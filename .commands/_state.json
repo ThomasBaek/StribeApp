@@ -1,0 +1,366 @@
+{
+  "project": "Stribe",
+  "version": "0.1.0",
+  "lastUpdated": "2025-12-23",
+  "currentPhase": 1,
+  "nextCommand": "002",
+  "phases": {
+    "1": { "name": "Foundation", "status": "in_progress", "completedCommands": 1, "totalCommands": 9 },
+    "2": { "name": "Onboarding", "status": "not_started", "completedCommands": 0, "totalCommands": 5 },
+    "3": { "name": "Core Experience", "status": "not_started", "completedCommands": 0, "totalCommands": 10 },
+    "4": { "name": "Management", "status": "not_started", "completedCommands": 0, "totalCommands": 8 },
+    "5": { "name": "Polish & Launch", "status": "not_started", "completedCommands": 0, "totalCommands": 10 }
+  },
+  "commands": {
+    "001": {
+      "name": "App Shell & Navigation",
+      "phase": 1,
+      "status": "completed",
+      "completedAt": "2025-12-23",
+      "estimatedHours": 2.5,
+      "dependencies": []
+    },
+    "002": {
+      "name": "Splash Screen",
+      "phase": 1,
+      "status": "pending",
+      "completedAt": null,
+      "estimatedHours": 1.5,
+      "dependencies": ["001"]
+    },
+    "003": {
+      "name": "Helpers & Extensions",
+      "phase": 1,
+      "status": "pending",
+      "completedAt": null,
+      "estimatedHours": 2,
+      "dependencies": []
+    },
+    "004": {
+      "name": "Value Converters",
+      "phase": 1,
+      "status": "pending",
+      "completedAt": null,
+      "estimatedHours": 2,
+      "dependencies": []
+    },
+    "005": {
+      "name": "HabitService (Business Logic)",
+      "phase": 1,
+      "status": "pending",
+      "completedAt": null,
+      "estimatedHours": 3.5,
+      "dependencies": []
+    },
+    "006": {
+      "name": "NotificationService (Stub)",
+      "phase": 1,
+      "status": "pending",
+      "completedAt": null,
+      "estimatedHours": 2,
+      "dependencies": []
+    },
+    "007": {
+      "name": "Settings Service",
+      "phase": 1,
+      "status": "pending",
+      "completedAt": null,
+      "estimatedHours": 2,
+      "dependencies": []
+    },
+    "008": {
+      "name": "Error Handling & Logging",
+      "phase": 1,
+      "status": "pending",
+      "completedAt": null,
+      "estimatedHours": 1.5,
+      "dependencies": []
+    },
+    "009": {
+      "name": "DI Registration (Foundation Services)",
+      "phase": 1,
+      "status": "pending",
+      "completedAt": null,
+      "estimatedHours": 1,
+      "dependencies": ["005", "006", "007", "008"]
+    },
+    "010": {
+      "name": "Welcome Page",
+      "phase": 2,
+      "status": "pending",
+      "completedAt": null,
+      "estimatedHours": 3.5,
+      "dependencies": ["001", "002", "003"]
+    },
+    "011": {
+      "name": "Habit Selection Page",
+      "phase": 2,
+      "status": "pending",
+      "completedAt": null,
+      "estimatedHours": 4.5,
+      "dependencies": ["010"]
+    },
+    "012": {
+      "name": "Custom Habit Dialog",
+      "phase": 2,
+      "status": "pending",
+      "completedAt": null,
+      "estimatedHours": 3,
+      "dependencies": ["011"]
+    },
+    "013": {
+      "name": "Reminder Setup Page",
+      "phase": 2,
+      "status": "pending",
+      "completedAt": null,
+      "estimatedHours": 2.5,
+      "dependencies": ["011"]
+    },
+    "014": {
+      "name": "Onboarding Flow Integration",
+      "phase": 2,
+      "status": "pending",
+      "completedAt": null,
+      "estimatedHours": 2,
+      "dependencies": ["010", "011", "012", "013"]
+    },
+    "015": {
+      "name": "HomeViewModel (Core Logic)",
+      "phase": 3,
+      "status": "pending",
+      "completedAt": null,
+      "estimatedHours": 4.5,
+      "dependencies": ["005"]
+    },
+    "016": {
+      "name": "Home Page Layout",
+      "phase": 3,
+      "status": "pending",
+      "completedAt": null,
+      "estimatedHours": 3,
+      "dependencies": ["015"]
+    },
+    "017": {
+      "name": "Date Navigation Component",
+      "phase": 3,
+      "status": "pending",
+      "completedAt": null,
+      "estimatedHours": 2,
+      "dependencies": ["016"]
+    },
+    "018": {
+      "name": "Week Progress Component",
+      "phase": 3,
+      "status": "pending",
+      "completedAt": null,
+      "estimatedHours": 2,
+      "dependencies": []
+    },
+    "019": {
+      "name": "Checkbox Component with Animation",
+      "phase": 3,
+      "status": "pending",
+      "completedAt": null,
+      "estimatedHours": 3,
+      "dependencies": []
+    },
+    "020": {
+      "name": "HabitCard Component",
+      "phase": 3,
+      "status": "pending",
+      "completedAt": null,
+      "estimatedHours": 4.5,
+      "dependencies": ["018", "019"]
+    },
+    "021": {
+      "name": "Home Page - Habit List",
+      "phase": 3,
+      "status": "pending",
+      "completedAt": null,
+      "estimatedHours": 3,
+      "dependencies": ["016", "020"]
+    },
+    "022": {
+      "name": "Completion Toggle Logic",
+      "phase": 3,
+      "status": "pending",
+      "completedAt": null,
+      "estimatedHours": 2.5,
+      "dependencies": ["021"]
+    },
+    "023": {
+      "name": "Empty State",
+      "phase": 3,
+      "status": "pending",
+      "completedAt": null,
+      "estimatedHours": 1.5,
+      "dependencies": ["021"]
+    },
+    "024": {
+      "name": "Floating Action Button",
+      "phase": 3,
+      "status": "pending",
+      "completedAt": null,
+      "estimatedHours": 1,
+      "dependencies": ["021"]
+    },
+    "025": {
+      "name": "Habit Detail ViewModel",
+      "phase": 4,
+      "status": "pending",
+      "completedAt": null,
+      "estimatedHours": 3,
+      "dependencies": ["005"]
+    },
+    "026": {
+      "name": "Habit Detail Page Layout",
+      "phase": 4,
+      "status": "pending",
+      "completedAt": null,
+      "estimatedHours": 3.5,
+      "dependencies": ["025"]
+    },
+    "027": {
+      "name": "Calendar Heatmap Component",
+      "phase": 4,
+      "status": "pending",
+      "completedAt": null,
+      "estimatedHours": 4.5,
+      "dependencies": []
+    },
+    "028": {
+      "name": "Add Habit Page",
+      "phase": 4,
+      "status": "pending",
+      "completedAt": null,
+      "estimatedHours": 3.5,
+      "dependencies": ["024"]
+    },
+    "029": {
+      "name": "Emoji Picker Component",
+      "phase": 4,
+      "status": "pending",
+      "completedAt": null,
+      "estimatedHours": 2.5,
+      "dependencies": ["028"]
+    },
+    "030": {
+      "name": "Color Picker Component",
+      "phase": 4,
+      "status": "pending",
+      "completedAt": null,
+      "estimatedHours": 1.5,
+      "dependencies": ["028"]
+    },
+    "031": {
+      "name": "Edit Habit Page",
+      "phase": 4,
+      "status": "pending",
+      "completedAt": null,
+      "estimatedHours": 2,
+      "dependencies": ["028", "026"]
+    },
+    "032": {
+      "name": "Delete Habit Logic",
+      "phase": 4,
+      "status": "pending",
+      "completedAt": null,
+      "estimatedHours": 1.5,
+      "dependencies": ["026"]
+    },
+    "033": {
+      "name": "Milestone Detection Logic",
+      "phase": 5,
+      "status": "pending",
+      "completedAt": null,
+      "estimatedHours": 2.5,
+      "dependencies": ["022"]
+    },
+    "034": {
+      "name": "Milestone Celebration Page",
+      "phase": 5,
+      "status": "pending",
+      "completedAt": null,
+      "estimatedHours": 3.5,
+      "dependencies": ["033"]
+    },
+    "035": {
+      "name": "Settings Page Layout",
+      "phase": 5,
+      "status": "pending",
+      "completedAt": null,
+      "estimatedHours": 2.5,
+      "dependencies": ["007"]
+    },
+    "036": {
+      "name": "Day Start Time Setting",
+      "phase": 5,
+      "status": "pending",
+      "completedAt": null,
+      "estimatedHours": 2,
+      "dependencies": ["035"]
+    },
+    "037": {
+      "name": "Notification Implementation",
+      "phase": 5,
+      "status": "pending",
+      "completedAt": null,
+      "estimatedHours": 4.5,
+      "dependencies": ["006"]
+    },
+    "038": {
+      "name": "CSV Export Feature",
+      "phase": 5,
+      "status": "pending",
+      "completedAt": null,
+      "estimatedHours": 2.5,
+      "dependencies": ["035"]
+    },
+    "039": {
+      "name": "App Animations (Polish)",
+      "phase": 5,
+      "status": "pending",
+      "completedAt": null,
+      "estimatedHours": 3.5,
+      "dependencies": []
+    },
+    "040": {
+      "name": "Accessibility Improvements",
+      "phase": 5,
+      "status": "pending",
+      "completedAt": null,
+      "estimatedHours": 2.5,
+      "dependencies": []
+    },
+    "041": {
+      "name": "Error Handling & Edge Cases",
+      "phase": 5,
+      "status": "pending",
+      "completedAt": null,
+      "estimatedHours": 2.5,
+      "dependencies": []
+    },
+    "042": {
+      "name": "App Store Preparation",
+      "phase": 5,
+      "status": "pending",
+      "completedAt": null,
+      "estimatedHours": 2.5,
+      "dependencies": []
+    }
+  },
+  "notes": {
+    "alreadyImplemented": [
+      "NuGet packages (CommunityToolkit.Mvvm, CommunityToolkit.Maui, sqlite-net-pcl)",
+      "Colors.xaml (Scandinavian design tokens)",
+      "Styles.xaml (Typography, buttons, cards, inputs)",
+      "BaseViewModel (ObservableObject)",
+      "Models (Habit, Completion, AppSettings)",
+      "DatabaseService + IDatabaseService",
+      "MauiProgram.cs DI setup"
+    ],
+    "estimatedTotalHours": 100,
+    "targetCompletionDate": "2026-02-01",
+    "criticalPath": ["001", "005", "015", "020", "021", "022"]
+  }
+}
