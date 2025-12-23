@@ -1,14 +1,24 @@
 # Command 015: HomeViewModel Core Logic
 
 ## Metadata
-- **ID:** 015
-- **Fase:** 3 - Core Experience
-- **Estimeret tid:** 4-5 timer
-- **Afhængigheder:** 005
-- **Design reference:** stribe-design/screens/05_HOME.md
+- **Phase**: 3 - Core Experience
+- **Dependencies**: 005
+- **Estimated Time**: 4-5 hours
+- **Status**: Pending
+- **Design Reference**: stribe-design/screens/05_HOME.md
+- **Frequency Impact**: YES - Must filter by ActiveDays and handle DailyTargetCount
+
+---
 
 ## Formål
+
 Implementere HomeViewModel - kernen i home screen logic. Dette ViewModel håndterer habit loading, date navigation, completion toggling, og streak calculations for den valgte dato.
+
+**Hvorfor dette er vigtigt:**
+- Central business logic for hovedskærmen
+- Håndterer frequency features (ActiveDays filtering, multi-completion tracking)
+- Real-time opdatering af streaks og progress
+- Kritisk for bruger experience
 
 ## Risici
 - **Høj risiko**: Dette er critical path funktionalitet
@@ -443,21 +453,177 @@ Scenario 5: Toggle updates progress text
 - [ ] CanGoToNextDay disabled når viewing today
 
 ### Acceptkriterier
-- [ ] HabitDisplayModel oprettet
+- [ ] HabitDisplayModel oprettet med **DailyTargetCount og CurrentCount properties**
 - [ ] HomeViewModel komplet implementeret
 - [ ] All commands functional
 - [ ] Date navigation logic korrekt
-- [ ] Toggle completion logic korrekt
-- [ ] Progress calculation korrekt
+- [ ] **Toggle completion logic håndterer multi-completion (Count increment)**
+- [ ] **LoadHabits filtrerer efter ActiveDays** (kun viser habits aktive for selected date)
+- [ ] Progress calculation korrekt (uses completion threshold: Count >= DailyTargetCount)
 - [ ] Observable properties for data binding
 - [ ] Milestone detection integration
 - [ ] Registreret i DI
 - [ ] Build succeeds
 - [ ] Alle test scenarier passerer
 
-## Status
-- [ ] Analyse gennemført
-- [ ] Dependencies verified
-- [ ] Implementering gennemført
-- [ ] Verifikation bestået (KRITISK!)
-- [ ] Markeret færdig i _state.json
+---
+
+## Frequency Feature Integration
+
+### ActiveDays Filtering
+**HabitService.GetHabitsForDateAsync()** skal filtrere habits baseret på selected date:
+```csharp
+// In LoadHabitsAsync
+var allHabits = await _habitService.GetAllHabitsAsync();
+var habitsForDate = allHabits.Where(h => h.IsActiveOnDay(SelectedDate)).ToList();
+```
+
+HabitService implementerer filtering (see Command 005).
+
+### DailyTargetCount Handling
+HabitDisplayModel skal inkludere:
+```csharp
+public int DailyTargetCount => Habit.DailyTargetCount;  // From Habit model
+public int CurrentCount { get; set; }  // From Completion.Count
+public bool IsFullyCompleted => CurrentCount >= DailyTargetCount;
+public string ProgressText => DailyTargetCount > 1
+    ? $"{CurrentCount}/{DailyTargetCount}"
+    : string.Empty;
+```
+
+### Multi-Completion Toggle Logic
+ToggleCompletionAsync skal incrementere Count:
+```csharp
+[RelayCommand]
+private async Task ToggleCompletionAsync(HabitDisplayModel habitDisplay)
+{
+    try
+    {
+        // HabitService.ToggleCompletionAsync handles:
+        // - If uncompleted: Create with Count = 1
+        // - If completed: Increment Count (Count++), or reset to 0 if >= DailyTargetCount
+
+        var completion = await _habitService.ToggleCompletionAsync(habitDisplay.Id, SelectedDate);
+
+        // Update UI
+        habitDisplay.CurrentCount = completion?.Count ?? 0;
+        habitDisplay.IsCompletedToday = completion != null && completion.Count >= habitDisplay.DailyTargetCount;
+
+        // Recalculate everything
+        await RefreshHabitData(habitDisplay);
+    }
+    catch (Exception ex)
+    {
+        await Shell.Current.DisplayAlert("Error", $"Failed to toggle completion: {ex.Message}", "OK");
+    }
+}
+```
+
+### Completion Status Calculation
+CalculateDailyProgress skal bruge threshold:
+```csharp
+private void CalculateDailyProgress()
+{
+    if (!HasHabits) return;
+
+    // Count habits where CurrentCount >= DailyTargetCount
+    var completed = Habits.Count(h => h.CurrentCount >= h.DailyTargetCount);
+    var total = Habits.Count;
+
+    ProgressText = $"{completed} af {total} i dag";
+}
+```
+
+---
+
+## Kode Evaluering
+
+### Simplifikations-tjek
+Denne implementation følger KISS princippet ved at:
+- **Simple ViewModel pattern**: Uses CommunityToolkit.Mvvm (no manual INotifyPropertyChanged)
+- **Direct HabitService calls**: No caching layer (database is fast enough)
+- **Observable collections**: Direct binding (no custom update logic)
+- **Frequency logic delegeret til HabitService**: ViewModel kalder GetHabitsForDateAsync() - filtering happens in service layer
+
+### Alternativer overvejet
+
+**Alternative 1: ViewModel caching**
+```csharp
+private Dictionary<DateTime, List<HabitDisplayModel>> _cachedHabits = new();
+
+public async Task LoadHabitsAsync()
+{
+    if (_cachedHabits.ContainsKey(SelectedDate))
+    {
+        Habits = new ObservableCollection<HabitDisplayModel>(_cachedHabits[SelectedDate]);
+        return;
+    }
+    // ... load from database
+}
+```
+**Hvorfor fravalgt**: Over-engineering. Database queries are fast. Caching adds complexity (invalidation logic, memory overhead).
+
+**Alternative 2: Separate ViewModels per date**
+```csharp
+public class DateViewModel
+{
+    public DateTime Date { get; set; }
+    public List<HabitDisplayModel> Habits { get; set; }
+}
+```
+**Hvorfor fravalgt**: Too complex. Single ViewModel med SelectedDate is simpler and sufficient.
+
+**Alternative 3: Client-side ActiveDays filtering**
+```csharp
+var filtered = allHabits.Where(h => h.ActiveDays[SelectedDate.GetDayOfWeekIndex()] == '1');
+```
+**Hvorfor fravalgt**: Business logic should be in service layer, not ViewModel. Violates separation of concerns.
+
+### Potentielle forbedringer (v2)
+- Pagination for large habit lists (100+) - Not needed for MVP (typical user has 5-10 habits)
+- Background refresh (polling for changes) - Not needed (single-user app)
+- Undo/redo for completion toggles - Nice-to-have, not MVP
+- Offline queue for toggle operations - Not needed (local database)
+
+### Kendte begrænsninger
+- **No optimistic UI updates**: Waits for database before updating UI (acceptable - database is fast, ~10ms)
+- **Refetches all data on toggle**: Could be optimized to only update single habit (acceptable - simple logic, fast enough)
+- **No error retry logic**: Failed toggle just shows alert (acceptable for MVP)
+
+---
+
+## Kode Kvalitet Checklist
+
+- [x] **KISS**: Simple ViewModel med direct service calls, no caching
+- [x] **Læsbarhed**: Clear command names (LoadHabitsAsync, ToggleCompletionAsync)
+- [x] **Navngivning**: Descriptive properties (SelectedDate, Habits, ProgressText)
+- [x] **Funktioner**: LoadHabitsAsync (30 lines), ToggleCompletionAsync (25 lines) - fokuserede
+- [x] **DRY**: CalculateDailyProgress reused after toggle, RefreshAsync wraps LoadHabitsAsync
+- [x] **Error handling**: Try-catch on all async operations med user-friendly alerts
+- [x] **Edge cases**: No habits (empty state), database errors, future dates
+- [x] **Performance**: Async/await throughout, parallel calculations (Task.WhenAll)
+- [x] **Testbarhed**: HabitService injected (mockable), pure calculation methods
+
+---
+
+## Design Files Reference
+
+- **Screen Spec**: stribe-design/screens/05_HOME.md
+- **Component Spec**: stribe-design/components/HABIT_CARD.md (used by habit list)
+- **Related**: Command 005 (HabitService frequency logic)
+
+---
+
+## Notes
+
+- **CRITICAL**: LoadHabitsAsync must call HabitService.GetHabitsForDateAsync() which filters by ActiveDays
+- **CRITICAL**: ToggleCompletionAsync must handle Count increment (see Command 022 for detailed logic)
+- HabitDisplayModel binds to HabitCard component (Command 020)
+- Milestone detection navigates to MilestonePage (Command 034)
+- DateDisplayText uses Danish culture (CultureInfo("da-DK"))
+
+---
+
+**Command Status**: ⏸️ Ready to implement
+**Last Updated**: 2025-12-23
+**Implemented By**: Pending
