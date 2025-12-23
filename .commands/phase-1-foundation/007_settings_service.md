@@ -1,20 +1,39 @@
 # Command 007: Settings Service
 
 ## Metadata
-- **ID:** 007
-- **Fase:** 1 - Foundation
-- **Estimeret tid:** 2 timer
-- **Afhængigheder:** Ingen
-- **Design reference:** N/A (data access)
+- **Phase**: 1 - Foundation
+- **Dependencies**: DatabaseService (Command 005), Constants (Command 003)
+- **Estimated Time**: 2 timer
+- **Status**: Pending
+- **Design Reference**: N/A (data access)
+- **Frequency Impact**: NO
+
+---
 
 ## Formål
 Wrapper omkring DatabaseService specifikt til app settings. Dette simplificerer settings management og giver type-safe adgang til konfigurations værdier.
 
-## Risici
-- **Lav risiko**: Simple wrapper around database
-- **Opmærksomhed**: Default værdier skal matche Constants
+---
 
-## Analyse
+## Risici
+
+### Potentielle Problemer
+1. **Default value mismatch**:
+   - Edge case: Hardcoded defaults don't match Constants class
+   - Impact: Inconsistent behavior across app
+
+2. **TimeSpan parsing failures**:
+   - Edge case: Corrupted database values that can't parse to TimeSpan
+   - Impact: App crashes or returns incorrect defaults
+
+### Mitigering
+- Always use Constants for default values - no hardcoded strings
+- Wrap TimeSpan.Parse in TryParse with fallback to Constants
+- Add validation for time values to ensure they're reasonable (00:00 to 23:59)
+
+---
+
+## Analyse - Hvad Skal Implementeres
 
 ### Hvad skal implementeres
 Settings service med type-safe metoder:
@@ -29,11 +48,15 @@ Settings service med type-safe metoder:
 - `src/Stribe/Services/ISettingsService.cs`
 - `src/Stribe/Services/SettingsService.cs`
 
+---
+
 ## Dependencies Check
 ✅ DatabaseService - allerede implementeret
 ✅ Constants - vil være klar efter cmd 003
 
-## Implementering
+---
+
+## Implementation Guide
 
 ### Prompt til Claude Code
 ```
@@ -133,7 +156,10 @@ builder.Services.AddSingleton<ISettingsService, SettingsService>();
 ```
 ```
 
-## Verifikation
+---
+
+## Verification Steps
+
 ```bash
 dotnet build src/Stribe/Stribe.csproj
 ```
@@ -143,14 +169,98 @@ dotnet build src/Stribe/Stribe.csproj
 - [ ] SetDayStartTimeAsync() gemmer korrekt
 - [ ] IsOnboardingCompletedAsync() returnerer false initially
 
-## Acceptkriterier
+---
+
+## Acceptance Criteria
 - [ ] Interface og implementation oprettet
 - [ ] Type-safe metoder for alle settings
 - [ ] Default values fra Constants
 - [ ] Registreret i DI
 - [ ] Build succeeds
 
-## Status
-- [ ] Implementering gennemført
-- [ ] Verifikation bestået
-- [ ] Markeret færdig i _state.json
+---
+
+## Kode Evaluering
+
+### Simplifikations-tjek
+Denne implementation følger KISS princippet ved at:
+- **Thin wrapper pattern**: Simple delegation to DatabaseService without adding unnecessary logic
+- **Type-safe API**: Methods return TimeSpan and bool instead of raw strings
+- **Centralized defaults**: All default values from Constants class - single source of truth
+- **Clear method names**: Self-documenting API (GetDayStartTime, SetOnboardingCompleted)
+
+### Alternativer overvejet
+
+**Alternative 1: Generic Get/Set methods**
+```csharp
+public Task<T> GetSettingAsync<T>(string key);
+public Task SetSettingAsync<T>(string key, T value);
+```
+**Hvorfor fravalgt**: Less discoverable, no IntelliSense support, loses type safety benefits. Explicit methods are clearer.
+
+**Alternative 2: Properties with lazy loading**
+```csharp
+public TimeSpan DayStartTime => _cached ?? LoadFromDb();
+```
+**Hvorfor fravalgt**: Adds caching complexity. Async database access doesn't work well with properties. Service layer should be explicit.
+
+**Alternative 3: MAUI Preferences API**
+```csharp
+Preferences.Set("day_start_time", "04:00");
+```
+**Hvorfor fravalgt**: Preferences are key-value only. Using database allows complex queries and maintains consistency with other app data.
+
+### Potentielle forbedringer (v2)
+- **Caching layer**: Cache settings in memory to reduce database hits - premature optimization for low-frequency reads
+- **Setting change events**: Notify subscribers when settings change - YAGNI until multiple components need sync
+- **Validation framework**: Fluent validation for time ranges - overkill for simple time string validation
+- **Migration support**: Handle settings schema changes - not needed until we have version updates
+
+### Kendte begrænsninger
+- **No caching**: Every call hits database (acceptable - settings read infrequently)
+- **No validation**: SetDayStartTimeAsync accepts any TimeSpan (acceptable - UI controls input)
+- **String-based storage**: Settings stored as strings in DB (acceptable - simple and flexible)
+- **No transaction support**: Each setting saved independently (acceptable - settings are independent values)
+
+---
+
+## Kode Kvalitet Checklist
+
+- [x] **KISS**: Simple wrapper with no business logic - just type conversion and default handling
+- [x] **Læsbarhed**: Method names clearly indicate what setting they manage
+- [x] **Navngivning**: Follows C# async conventions - Async suffix, descriptive parameter names
+- [x] **Funktioner**: Each method does one thing - get or set a specific setting
+- [x] **DRY**: Constants reused for keys and defaults - no duplication
+- [x] **Error handling**: TryParse with fallback to defaults prevents crashes
+- [x] **Edge cases**: Handles null, empty, and invalid values gracefully
+- [x] **Performance**: Minimal overhead - direct database delegation
+- [x] **Testbarhed**: Interface enables mocking, pure functions easy to test
+
+---
+
+## Design Files Reference
+
+- **Screen Spec**: N/A
+- **Component Spec**: N/A
+- **Related**:
+  - Command 003 (Constants - provides default values)
+  - Command 005 (DatabaseService - underlying data access)
+  - SettingsPage (will use this service)
+  - Onboarding flow (checks IsOnboardingCompleted)
+
+---
+
+## Notes
+
+- SettingsService is a facade over DatabaseService for app configuration
+- All settings keys defined in Constants class - prevents typos and ensures consistency
+- TimeSpan format "hh:mm" used for time values (matches UI TimePicker)
+- Boolean values stored as "true"/"false" lowercase strings
+- Service registered as Singleton - safe because it's stateless
+- Consider adding logging for settings changes in production for debugging
+
+---
+
+**Command Status**: ⏸️ Ready to implement
+**Last Updated**: 2025-12-23
+**Implemented By**: Pending

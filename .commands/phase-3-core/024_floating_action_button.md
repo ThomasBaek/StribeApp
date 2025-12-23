@@ -1,14 +1,24 @@
 # Command 024: Floating Action Button
 
 ## Metadata
-- **ID:** 024
-- **Fase:** 3 - Core Experience
-- **Estimeret tid:** 1 time
-- **Afhængigheder:** 021
-- **Design reference:** stribe-design/screens/05_HOME.md (FAB section)
+- **Phase**: 3 - Core Experience
+- **Dependencies**: 021
+- **Estimated Time**: 1 hour
+- **Status**: Pending
+- **Design Reference**: stribe-design/screens/05_HOME.md (FAB section)
+- **Frequency Impact**: NO
+
+---
 
 ## Formål
+
 Polish FAB (Floating Action Button) med shadow, animation, og korrekt positioning over scroll content.
+
+**Hvorfor dette er vigtigt:**
+- Primary action affordance (most important button)
+- Material Design pattern (recognizable interaction)
+- Tactile feedback (animation confirms tap)
+- Depth perception (shadow creates hierarchy)
 
 ## Risici
 - **Lav risiko**: UI polish

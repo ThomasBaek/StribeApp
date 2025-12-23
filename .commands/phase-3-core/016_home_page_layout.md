@@ -1,14 +1,24 @@
 # Command 016: Home Page Layout
 
 ## Metadata
-- **ID:** 016
-- **Fase:** 3 - Core Experience
-- **Estimeret tid:** 3 timer
-- **Afhængigheder:** 015
-- **Design reference:** stribe-design/screens/05_HOME.md
+- **Phase**: 3 - Core Experience
+- **Dependencies**: 015
+- **Estimated Time**: 3 hours
+- **Status**: Pending
+- **Design Reference**: stribe-design/screens/05_HOME.md
+- **Frequency Impact**: NO
+
+---
 
 ## Formål
+
 Implementere Home Page layout structure - skelet til home screen med header, date navigation placeholder, habit list, og FAB. Detaljerede components implementeres i senere commands.
+
+**Hvorfor dette er vigtigt:**
+- Foundation for hele app'ens primary screen
+- Grid layout etablerer korrekt visual hierarchy
+- FAB pattern giver intuitive add-habit flow
+- Scalable struktur for future components
 
 ## Risici
 - **Lav risiko**: Standard layout implementation
@@ -285,6 +295,112 @@ Reference design: stribe-design/screens/05_HOME.md
 - [ ] Empty state vises
 - [ ] FAB klikbar
 
-## Status
-- [ ] Implementering gennemført
-- [ ] Verifikation bestået
+### Acceptkriterier
+- [ ] HomePage.xaml oprettet med 4-row Grid layout
+- [ ] Header med title og settings button
+- [ ] Date navigation placeholder (refined in Command 017)
+- [ ] Scrollable habit list med BindableLayout
+- [ ] Placeholder HabitCard template
+- [ ] Empty state placeholder (refined in Command 023)
+- [ ] FAB positioned bottom-right with shadow
+- [ ] Registreret i DI container
+- [ ] Build succeeds
+- [ ] Layout responsive på forskellige skærme
+
+---
+
+## Kode Evaluering
+
+### Simplifikations-tjek
+Denne implementation følger KISS princippet ved at:
+- **Simple Grid layout**: 4-row structure (header, date nav, content, FAB) - clear hierarchy
+- **BindableLayout over CollectionView**: Simpler for small lists (typical: 5-10 habits)
+- **Placeholder components**: Postpone polish til dedicated commands (017, 018, 023, 024)
+- **No custom controls yet**: Standard XAML elements (Border, Label, Button)
+
+### Alternativer overvejet
+
+**Alternative 1: CollectionView instead of BindableLayout**
+```xaml
+<CollectionView ItemsSource="{Binding Habits}">
+    <CollectionView.ItemTemplate>
+        <DataTemplate>
+            <!-- HabitCard -->
+        </DataTemplate>
+    </CollectionView.ItemTemplate>
+</CollectionView>
+```
+**Hvorfor fravalgt**: Over-engineering for MVP. CollectionView adds complexity (virtualization, item selection). BindableLayout is simpler for small lists and sufficient for typical usage (5-10 habits). Switch to CollectionView in v2 if users report 20+ habits.
+
+**Alternative 2: Custom ContentPage base class**
+```csharp
+public class BaseContentPage : ContentPage
+{
+    protected Grid RootLayout { get; set; }
+    // Shared header setup
+}
+```
+**Hvorfor fravalgt**: YAGNI. HomePage er kun én page. No reuse benefit. Custom base adds indirection.
+
+**Alternative 3: AbsoluteLayout for FAB positioning**
+```xaml
+<AbsoluteLayout>
+    <!-- Content -->
+    <Border AbsoluteLayout.LayoutBounds="1,1,56,56" />
+</AbsoluteLayout>
+```
+**Hvorfor fravalgt**: Grid med overlapping rows (FAB in Grid.Row="2" over ScrollView) is simpler. AbsoluteLayout is harder to maintain (magic numbers).
+
+### Potentielle forbedringer (v2)
+- Switch to CollectionView hvis users have 20+ habits (virtualization benefit)
+- Pull-to-refresh gesture (not needed - real-time via ViewModel)
+- Skeleton loading state under habit cards (nice-to-have, not MVP)
+- Swipe gestures på habit cards (delete, edit) - Later command
+
+### Kendte begrænsninger
+- **No virtualization**: BindableLayout renders all items. Acceptable for 5-10 habits. Monitor in production.
+- **FAB overlaps scroll content**: Bottom padding (80px) on VerticalStackLayout prevents overlap. User must scroll to see habits under FAB.
+- **Placeholder visuals**: Basic cards without animations, polish, custom rendering. Addressed in later commands.
+
+---
+
+## Kode Kvalitet Checklist
+
+- [x] **KISS**: Simple Grid layout, standard XAML controls
+- [x] **Læsbarhed**: Clear Grid row definitions, logical ordering (header → nav → content → FAB)
+- [x] **Navngivning**: Semantic element naming (Header Border, Date Navigation Grid)
+- [x] **Layout**: Proper use of Border StrokeShape (rounded corners), Shadow (FAB depth)
+- [x] **Spacing**: Consistent padding (16px), margin (12px between cards)
+- [x] **Bindings**: StaticResource for colors/styles, Binding for data
+- [x] **Accessibility**: HeightRequest/WidthRequest on tap targets (44x44 ImageButton)
+- [x] **Empty state**: Proper handling with IsVisible binding
+- [x] **Responsiveness**: Grid auto-sizing, ScrollView adapts to content
+
+---
+
+## Design Files Reference
+
+- **Screen Spec**: stribe-design/screens/05_HOME.md
+- **Component Specs**:
+  - HABIT_CARD.md (placeholder template)
+  - DATE_NAVIGATION.md (placeholder, refined in 017)
+- **Related Commands**:
+  - Command 017 (Date Navigation polish)
+  - Command 018 (Week Progress component)
+  - Command 023 (Empty State polish)
+  - Command 024 (FAB polish)
+
+---
+
+## Notes
+
+- **Layout Strategy**: 4-row Grid provides clear separation: Fixed header (Auto) → Fixed nav (Auto) → Scrollable content (*) → Floating FAB (overlays row 2)
+- **FAB Positioning**: FAB placed in Grid.Row="2" (overlays ScrollView) med HorizontalOptions="End" + VerticalOptions="End" + Margin for bottom-right positioning
+- **Placeholder Philosophy**: This command creates skeleton. Components polished in dedicated commands for focused iteration.
+- **XAML Best Practice**: Border with RoundRectangle StrokeShape for rounded corners (modern approach, better than legacy CornerRadius on Frame)
+
+---
+
+**Command Status**: ⏸️ Ready to implement
+**Last Updated**: 2025-12-23
+**Implemented By**: Pending

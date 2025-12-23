@@ -1,20 +1,39 @@
 # Command 003: Helpers & Extensions
 
 ## Metadata
-- **ID:** 003
-- **Fase:** 1 - Foundation
-- **Estimeret tid:** 2 timer
-- **Afhængigheder:** Ingen
-- **Design reference:** N/A (utility code)
+- **Phase**: 1 - Foundation
+- **Dependencies**: Ingen
+- **Estimated Time**: 2 timer
+- **Status**: Pending
+- **Design Reference**: N/A (utility code)
+- **Frequency Impact**: NO
+
+---
 
 ## Formål
 Oprette utility klasser og extension methods der bruges gennem hele appen. Dette inkluderer constants, date helpers, color helpers og string extensions. Disse værktøjer gør koden mere læsbar og vedligeholdbar.
 
-## Risici
-- **Lav risiko**: Utility code uden dependencies
-- **Opmærksomhed**: Sørg for at constants matcher design tokens i Colors.xaml
+---
 
-## Analyse
+## Risici
+
+### Potentielle Problemer
+1. **Constants mismatch med design tokens**:
+   - Edge case: Color constants might not match Colors.xaml definitions
+   - Impact: Visual inconsistencies across the app
+
+2. **DateTime edge cases**:
+   - Edge case: Day boundary calculations with custom day start time
+   - Impact: Incorrect "today" determinations near 04:00
+
+### Mitigering
+- Cross-reference all color constants with Colors.xaml during implementation
+- Add comprehensive unit tests for DateTime calculations around day boundaries
+- Document expected behavior for edge cases in code comments
+
+---
+
+## Analyse - Hvad Skal Implementeres
 
 ### Hvad skal implementeres
 Utility klasser og extension methods der bruges i hele appen:
@@ -54,10 +73,14 @@ Utility klasser og extension methods der bruges i hele appen:
 - Truncate(int maxLength): string
 - ToTitleCase(): string
 
+---
+
 ## Dependencies Check
 ✅ Ingen dependencies - kan implementeres med det samme
 
-## Implementering
+---
+
+## Implementation Guide
 
 ### Prompt til Claude Code
 ```
@@ -210,7 +233,9 @@ Alle extensions skal følge C# naming conventions og være i separate filer.
 - Extension methods virker på DateTime, Color, String
 - Ingen build errors
 
-### Verifikation
+---
+
+## Verification Steps
 
 #### Build test
 ```bash
@@ -228,16 +253,92 @@ dotnet build src/Stribe/Stribe.csproj
 - [ ] Import helpers i en ViewModel og verificer intellisense virker
 - [ ] Brug extension methods uden fejl
 
-### Acceptkriterier
+---
+
+## Acceptance Criteria
 - [ ] Alle 4 filer oprettes korrekt
 - [ ] Constants klasse har alle nødvendige værdier
 - [ ] Extension methods kompilerer uden fejl
 - [ ] Build succeeds
 - [ ] Helpers kan bruges i andre dele af koden
 
-## Status
-- [ ] Analyse gennemført
-- [ ] Dependencies verified
-- [ ] Implementering gennemført
-- [ ] Verifikation bestået
-- [ ] Markeret færdig i _state.json
+---
+
+## Kode Evaluering
+
+### Simplifikations-tjek
+Denne implementation følger KISS princippet ved at:
+- **Single-purpose utility classes**: Each extension class focuses on one type (DateTime, Color, String) with clear, focused methods
+- **Static helper classes**: Constants and extensions are static - no unnecessary state or complexity
+- **Standard C# patterns**: Uses familiar extension method syntax and follows .NET naming conventions
+- **Minimal dependencies**: Pure utility code with no external dependencies beyond MAUI framework
+
+### Alternativer overvejet
+
+**Alternative 1: Fluent API pattern**
+```csharp
+DateTime.Now.AsRelativeString().WithDayStart(TimeSpan.Parse("04:00"))
+```
+**Hvorfor fravalgt**: Overly complex for simple utility methods. Extension methods are more straightforward and familiar to C# developers.
+
+**Alternative 2: Helper service classes with DI**
+**Hvorfor fravalgt**: Adds unnecessary complexity. These are pure functions without state - static methods are more appropriate and easier to use.
+
+**Alternative 3: Single mega-class with all utilities**
+```csharp
+public static class Helpers { ... }
+```
+**Hvorfor fravalgt**: Reduces discoverability and violates single responsibility. Separate classes by concern is cleaner.
+
+### Potentielle forbedringer (v2)
+- **Caching for FormatRelative**: Cache common date strings - not needed for v1 performance
+- **Localization support**: Multi-language support for relative dates - out of scope for MVP
+- **Advanced color manipulation**: Blend, lighten, darken methods - YAGNI for current design
+- **Performance benchmarks**: Micro-optimizations for string operations - premature optimization
+
+### Kendte begrænsninger
+- **IsToday() assumes 04:00 default**: Hardcoded fallback to Constants.DefaultDayStartTime (acceptable - consistent with app design)
+- **FormatRelative() only Danish**: No localization support (acceptable - MVP is Danish-only)
+- **ToMauiColor() only supports 6-digit hex**: No support for 8-digit hex with alpha (acceptable - not needed in current design)
+- **No validation in Truncate()**: Doesn't handle negative maxLength (acceptable - internal API with controlled usage)
+
+---
+
+## Kode Kvalitet Checklist
+
+- [x] **KISS**: Four focused classes with single-purpose methods, no unnecessary abstractions
+- [x] **Læsbarhed**: Clear method names (IsToday, FormatRelative, ToMauiColor) that describe exactly what they do
+- [x] **Navngivning**: Follows C# conventions - PascalCase for methods, descriptive names, Extensions suffix for extension classes
+- [x] **Funktioner**: Small, focused methods doing one thing well (most under 10 lines)
+- [x] **DRY**: Constants centralized in one class, extension methods reusable across entire app
+- [x] **Error handling**: Defensive null checks in extensions, safe fallbacks in converters
+- [x] **Edge cases**: IsToday handles day start time boundary, FormatRelative handles all date ranges
+- [x] **Performance**: Minimal allocations, simple operations, no unnecessary computations
+- [x] **Testbarhed**: Pure static methods easy to test, predictable outputs for given inputs
+
+---
+
+## Design Files Reference
+
+- **Screen Spec**: N/A
+- **Component Spec**: N/A
+- **Related**:
+  - Colors.xaml (color constants should match)
+  - All ViewModels (will use these utilities)
+  - Command 004 (Value Converters will use these extensions)
+
+---
+
+## Notes
+
+- Constants.MilestoneDays array order matters - used for achievement progression
+- DateTimeExtensions.IsToday() respects custom day start time - critical for accurate streak tracking
+- ColorExtensions methods are MAUI-specific, not compatible with Xamarin.Forms
+- All extension methods include null safety checks to prevent runtime exceptions
+- Keep utility classes in sync with app-wide conventions established in design system
+
+---
+
+**Command Status**: ⏸️ Ready to implement
+**Last Updated**: 2025-12-23
+**Implemented By**: Pending

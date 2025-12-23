@@ -1,20 +1,39 @@
 # Command 004: Value Converters
 
 ## Metadata
-- **ID:** 004
-- **Fase:** 1 - Foundation
-- **Estimeret tid:** 2 timer
-- **Afhængigheder:** Ingen
-- **Design reference:** N/A (XAML utilities)
+- **Phase**: 1 - Foundation
+- **Dependencies**: Ingen
+- **Estimated Time**: 2 timer
+- **Status**: Pending
+- **Design Reference**: N/A (XAML utilities)
+- **Frequency Impact**: NO
+
+---
 
 ## Formål
 Oprette XAML value converters til databinding. Converters gør det muligt at transformere data fra ViewModels til UI-værdier (f.eks. bool til color, int til visibility, etc.). Disse bruges gennem hele appen til clean XAML bindings.
 
-## Risici
-- **Lav risiko**: Standard MAUI converters uden dependencies
-- **Opmærksomhed**: Registrer converters korrekt i Resources så de er tilgængelige i XAML
+---
 
-## Analyse
+## Risici
+
+### Potentielle Problemer
+1. **Resource registration missing**:
+   - Edge case: Converter not registered in Styles.xaml
+   - Impact: Runtime binding errors in XAML pages
+
+2. **Type conversion failures**:
+   - Edge case: Unexpected value types passed to Convert method
+   - Impact: Binding fails silently or throws exceptions
+
+### Mitigering
+- Add all converters to Styles.xaml ResourceDictionary during implementation
+- Include defensive type checking with safe fallbacks in all Convert methods
+- Test converters with various input types including null values
+
+---
+
+## Analyse - Hvad Skal Implementeres
 
 ### Hvad skal implementeres
 Value converters til XAML databinding:
@@ -46,10 +65,14 @@ Value converters til XAML databinding:
 - 7-20 days: Green
 - 21+ days: Dark green (achievement color)
 
+---
+
 ## Dependencies Check
 ✅ Ingen dependencies - kan implementeres med det samme
 
-## Implementering
+---
+
+## Implementation Guide
 
 ### Prompt til Claude Code
 ```
@@ -240,7 +263,9 @@ xmlns:converters="clr-namespace:Stribe.Converters"
 - Converters registreret i Styles.xaml
 - Kan bruges i XAML med {StaticResource}
 
-### Verifikation
+---
+
+## Verification Steps
 
 #### Build test
 ```bash
@@ -263,16 +288,99 @@ Opret test binding i en page:
        TextColor="{Binding IsCompleted, Converter={StaticResource BoolToColor}}" />
 ```
 
-### Acceptkriterier
+---
+
+## Acceptance Criteria
 - [ ] Alle 6 converter filer oprettes
 - [ ] Alle converters implementerer IValueConverter
 - [ ] Converters registreret i Styles.xaml
 - [ ] Build succeeds uden fejl
 - [ ] Kan bruges i XAML bindings
 
-## Status
-- [ ] Analyse gennemført
-- [ ] Dependencies verified
-- [ ] Implementering gennemført
-- [ ] Verifikation bestået
-- [ ] Markeret færdig i _state.json
+---
+
+## Kode Evaluering
+
+### Simplifikations-tjek
+Denne implementation følger KISS princippet ved at:
+- **One converter, one purpose**: Each converter handles a single type conversion (bool→color, int→visibility)
+- **Defensive type checking**: All converters validate input types and provide safe fallbacks
+- **Standard IValueConverter pattern**: Uses familiar MAUI converter interface without custom abstractions
+- **Declarative XAML usage**: Converters enable clean separation between UI and logic in XAML bindings
+
+### Alternativer overvejet
+
+**Alternative 1: Multi-value converters**
+```csharp
+public class MultiValueConverter : IMultiValueConverter { ... }
+```
+**Hvorfor fravalgt**: Not needed for current use cases. Single value conversions are simpler and sufficient for all current bindings.
+
+**Alternative 2: Generic converter with configuration**
+```csharp
+public class GenericConverter<TInput, TOutput> : IValueConverter { ... }
+```
+**Hvorfor fravalgt**: Over-engineering. Specific converters are more discoverable and easier to understand.
+
+**Alternative 3: Behavior-based approach**
+```xaml
+<Label.Behaviors>
+  <behaviors:ColorFromBoolBehavior />
+</Label.Behaviors>
+```
+**Hvorfor fravalgt**: Behaviors are more complex than converters for simple value transformations.
+
+### Potentielle forbedringer (v2)
+- **Converter parameter parsing**: More flexible parameter handling - not needed for current simple conversions
+- **Bidirectional conversion**: Implement ConvertBack for all converters - YAGNI for one-way bindings
+- **Cached color instances**: Reuse Color objects to reduce allocations - premature optimization
+- **Theme-aware converters**: Dynamic colors based on light/dark theme - out of scope for v1
+
+### Kendte begrænsninger
+- **BoolToColorConverter parameter must be Color**: Doesn't parse hex strings from XAML (acceptable - use direct Color binding)
+- **DateToStringConverter Danish-only**: No localization support (acceptable - MVP is Danish market)
+- **StreakToColorConverter hardcoded thresholds**: Color breakpoints at 1, 7, 21 days not configurable (acceptable - matches design spec)
+- **ConvertBack not implemented**: Most converters throw NotImplementedException (acceptable - only one-way binding needed)
+
+---
+
+## Kode Kvalitet Checklist
+
+- [x] **KISS**: Six focused converters, each handling one specific transformation type
+- [x] **Læsbarhed**: Descriptive names (BoolToColor, IntToVisibility) clearly indicate input→output mapping
+- [x] **Navngivning**: Follows MAUI conventions - Converter suffix, IValueConverter interface
+- [x] **Funktioner**: Each Convert method is 3-10 lines, single responsibility
+- [x] **DRY**: Converters registered once in Styles.xaml, reusable across all XAML pages
+- [x] **Error handling**: Type validation with safe fallback values (Gray, false, empty string)
+- [x] **Edge cases**: Handles null inputs, unexpected types, boundary values (0, negative numbers)
+- [x] **Performance**: Lightweight transformations, no database calls or heavy computation
+- [x] **Testbarhed**: Pure functions easy to unit test with predictable outputs
+
+---
+
+## Design Files Reference
+
+- **Screen Spec**: N/A
+- **Component Spec**: N/A
+- **Related**:
+  - Resources/Styles/Styles.xaml (converter registration)
+  - Resources/Styles/Colors.xaml (color values referenced)
+  - Command 003 (DateToStringConverter uses DateTimeExtensions)
+  - All XAML pages (will use these converters in bindings)
+
+---
+
+## Notes
+
+- All converters must be registered in Styles.xaml ResourceDictionary before use
+- StreakToColorConverter color breakpoints (1, 7, 21) match milestone system design
+- BoolToColorConverter defaults match app color scheme (green=#4CAF50, gray=#E5EBE8)
+- DateToStringConverter supports multiple formats via ConverterParameter
+- Converters enable two-way binding separation - ViewModels stay type-safe while XAML gets formatted values
+- Test converters with null, DBNull, and unexpected types to verify defensive coding
+
+---
+
+**Command Status**: ⏸️ Ready to implement
+**Last Updated**: 2025-12-23
+**Implemented By**: Pending
