@@ -2,7 +2,16 @@
 <?xaml-comp compile="true" ?>
 <ResourceDictionary
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:converters="clr-namespace:Stribe.Converters">
+
+    <!-- Value Converters -->
+    <converters:BoolToColorConverter x:Key="BoolToColor" />
+    <converters:InverseBoolConverter x:Key="InverseBool" />
+    <converters:IntToVisibilityConverter x:Key="IntToVisibility" />
+    <converters:DateToStringConverter x:Key="DateToString" />
+    <converters:StreakToColorConverter x:Key="StreakToColor" />
+    <converters:EmptyStringToVisibilityConverter x:Key="EmptyStringToVisibility" />
 
     <!-- Typography -->
     <Style x:Key="DisplayText" TargetType="Label">
